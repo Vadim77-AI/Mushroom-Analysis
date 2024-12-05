@@ -1,0 +1,396 @@
+---
+title: "Mushroom Analysis"
+author: "Soldatov Vadim"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+The Mushroom'dataset consists of 8124 observations with 23 columns.
+The details of the names of columns i.e. attributes in the dataset after loading the dataset are found.
+
+## Loading libraries
+
+```{r}
+library(tidyverse)
+library(dslabs)
+library(dplyr)
+library(ggplot2)
+library(dplyr)
+library(vcd)
+library(psych) 
+library(gridExtra)
+library(corrplot)
+library(MASS)
+```
+
+## Mushroom dataset
+```{r}
+mush <- readr::read_csv("https://raw.githubusercontent.com/Vadim77-AI/Mushroom-Analysis/refs/heads/main/mushrooms.csv")
+head(mush)
+```
+
+## Data Exploration
+
+About this file:
+
+Attribute Information: (classes: edible=e, poisonous=p)
+
+cap-shape: bell=b,conical=c,convex=x,flat=f, knobbed=k,sunken=s
+
+cap-surface: fibrous=f,grooves=g,scaly=y,smooth=s
+
+cap-color: brown=n,buff=b,cinnamon=c,gray=g,green=r,pink=p,purple=u,red=e,white=w, ellow=y
+
+bruises: bruises=t,no=f
+
+odor: almond=a,anise=l,creosote=c,fishy=y,foul=f,musty=m,none=n,pungent=p,spicy=s
+
+gill-attachment: attached=a,descending=d,free=f,notched=n
+
+gill-spacing: close=c,crowded=w,distant=d
+
+gill-size: broad=b,narrow=n
+
+gill-color: black=k,brown=n,buff=b,chocolate=h,gray=g, 
+green=r,orange=o,pink=p,purple=u,red=e,white=w,yellow=y
+
+stalk-shape: enlarging=e,tapering=t
+
+stalk-root: bulbous=b,club=c,cup=u,equal=e,rhizomorphs=z,rooted=r,missing=?
+
+stalk-surface-above-ring: fibrous=f,scaly=y,silky=k,smooth=s
+
+stalk-surface-below-ring: fibrous=f,scaly=y,silky=k,smooth=s
+
+stalk-color-above-ring: brown=n,buff=b,cinnamon=c,gray=g,orange=o,pink=p,red=e,white=w,yellow=y
+
+stalk-color-below-ring: brown=n,buff=b,cinnamon=c,gray=g,orange=o,pink=p,red=e,white=w,yellow=y
+
+veil-type: partial=p,universal=u
+
+veil-color: brown=n,orange=o,white=w,yellow=y
+
+ring-number: none=n,one=o,two=t
+
+ring-type: cobwebby=c,evanescent=e,flaring=f,large=l,none=n,pendant=p,sheathing=s,zone=z
+
+spore-print-color: black=k,brown=n,buff=b,chocolate=h,green=r,orange=o,purple=u,white=w,yellow=y
+
+population: abundant=a,clustered=c,numerous=n,scattered=s,several=v,solitary=y
+
+habitat: grasses=g,leaves=l,meadows=m,paths=p,urban=u,waste=w,woods=d
+
+```{r}
+class(mush)
+head(mush)
+glimpse(mush)
+dim(mush)
+summary(mush)
+```
+
+This plotted is histograms of each category and split them into two graphs according to their edibility. The objective to do is to find the attributes which are exclusive only in either class.
+```{r}
+ggplot(mush, aes(x = class)) +
+  theme_bw()+
+  geom_bar()+
+  labs(x = "edible  and poisonous",
+       y = "count",
+       title = "rates of edible  and poisonous")
+```
+
+```{r}
+ggplot(mush, aes(x = `cap-color`, fill = `cap-color`)) +
+  theme_bw()+
+  geom_bar()+
+  labs(x = "Cap color",
+       y = "count",
+       title = "Mushroom Cap color Attribute")
+```
+
+Summary of the section:
+Mushrooms are most likely to be brown, gray, red, white or yellow
+
+
+Below we can see the histograms of each category and split into two graphs according to their edibility. The objective is to find the attributes which are exclusive only in either class. The more exclusiveness hints towards a stronger correlation between the attribute and the edibility of the mushroom. The first three attributes - cap shape, cap surface and cap color are plotted below.
+```{r}
+mush1 <- ggplot(aes(x = `cap-shape`, fill = `cap-shape`), data = mush) +
+  geom_bar(stat="count") +
+  facet_wrap(~class) +
+  xlab("Cap Shape")
+
+mush2 <- ggplot(aes(x = `cap-surface`, fill = `cap-surface`), data = mush) +
+  geom_bar(stat="count") +
+  facet_wrap(~class) +
+  xlab("Cap Surface")
+
+mush3 <- ggplot(aes(x = `cap-color`, fill = `cap-color`), data = mush) +
+  geom_bar(stat="count") +
+  facet_wrap(~class) +
+  xlab("Cap Color")
+
+grid.arrange(mush1, mush2, mush3, ncol = 2)
+
+mush4 <- ggplot(aes(x = bruises, fill = bruises), data = mush) +
+  geom_bar(stat = "count") +
+  facet_wrap(~class) +
+  xlab("Bruises")
+
+mush5 <- ggplot(aes(x = odor, fill = odor), data = mush) +
+  geom_bar(stat = "count") +
+  facet_wrap(~class) +
+  xlab("Odor")
+
+grid.arrange(mush4, mush5, ncol = 2)
+
+mush6 <- ggplot(aes(x = `gill-attachment`, fill = `gill-attachment`), data = mush) +
+  geom_bar(stat = "count") +
+  facet_wrap(~class) +
+  xlab("Gill Attachemnt")
+
+mush7 <- ggplot(aes(x = `gill-spacing`, fill = `gill-spacing`), data = mush) +
+  geom_bar(stat = "count") +
+  facet_wrap(~class) +
+  xlab("Gill Spacing")
+
+mush8 <- ggplot(aes(x = `gill-size`, fill = `gill-size`), data = mush) +
+  geom_bar(stat = "count") +
+  facet_wrap(~class) +
+  xlab("Gill Size")
+
+grid.arrange(mush6, mush7, mush8, ncol = 2)
+
+mush9 <- ggplot(aes(x = `stalk-shape`, fill = `stalk-shape`), data = mush) +
+  geom_bar(stat = "count") +
+  facet_wrap(~class) +
+  xlab("Stalk  Shape")
+
+mush10 <- ggplot(aes(x = `stalk-root`, fill = `stalk-root`), data = mush) +
+  geom_bar(stat = "count") +
+  facet_wrap(~class) +
+  xlab("Stalk Root")
+
+grid.arrange(mush9, mush10, ncol = 2)
+
+mush11 <- ggplot(aes(x = `stalk-surface-above-ring`, fill = `stalk-surface-above-ring`), data = mush) +
+  geom_bar(stat = "count") +
+  facet_wrap(~class) +
+  xlab("Stalk Surface Above Ring")
+
+mush12 <- ggplot(aes(x = `stalk-surface-below-ring`, fill = `stalk-surface-below-ring`), data = mush) +
+  geom_bar(stat = "count") +
+  facet_wrap(~class) +
+  xlab("Stalk Surface Below Ring")
+
+grid.arrange(mush11, mush12, ncol = 2)
+
+mush13 <- ggplot(aes(x = `veil-type`, fill = `veil-type`), data = mush) +
+  geom_bar(stat = "count") +
+  xlab("Veil Type")
+
+mush14 <- ggplot(aes(x = `veil-color`, fill = `veil-color`), data = mush) +
+  geom_bar(stat = "count") +
+  facet_wrap(~class) +
+  xlab("Veil Color")
+
+mush15 <- ggplot(aes(x = `ring-number`, fill = `ring-number`), data = mush) +
+  geom_bar(stat = "count") +
+  facet_wrap(~class) +
+  xlab("Ring Number")
+
+mush16 <- ggplot(aes(x = `ring-type`, fill = `ring-type`), data = mush) +
+  geom_bar(stat = "count") +
+  facet_wrap(~class) +
+  xlab("Ring Type")
+
+grid.arrange(mush13, mush14, mush15, mush16, ncol = 2)
+
+mush17 <- ggplot(aes(x = population, fill = population), data = mush) +
+  geom_bar(stat = "count") +
+  facet_wrap(~class) +
+  xlab("Population")
+
+mush18 <- ggplot(aes(x = habitat, fill = habitat), data = mush) +
+  geom_bar(stat = "count") +
+  facet_wrap(~class) +
+  xlab("Habitat")
+
+grid.arrange(mush17, mush18, ncol = 2)
+```
+Summary of the section:
+
+## Finding relationship
+Next we will tried to find how closely the attributes are related to the class of the mushroom. The correlation between two categorical variables can be calculated by using the Chi-squared test.
+```{r}
+tbl1 <- table(mush$class, mush$`cap-shape`)
+chisq.test(tbl1)
+
+tbl2 <- table(mush$class, mush$`cap-surface`)
+chisq.test(tbl2)
+
+tbl3 <- table(mush$class, mush$`cap-color`)
+chisq.test(tbl3)
+
+tbl4 <- table(mush$class, mush$bruises)
+chisq.test(tbl4)
+
+tbl5 <- table(mush$class, mush$odor)
+chisq.test(tbl5)
+
+tbl6 <- table(mush$class, mush$`gill-attachment`)
+chisq.test(tbl6)
+
+tbl7 <- table(mush$class, mush$`gill-spacing`)
+chisq.test(tbl7)
+
+tbl8 <- table(mush$class, mush$`gill-size`)
+chisq.test(tbl8)
+
+tbl9 <- table(mush$class, mush$`stalk-shape`)
+chisq.test(tbl9)
+
+tbl10 <- table(mush$class, mush$`stalk-root`)
+chisq.test(tbl10)
+
+tbl11 <- table(mush$class, mush$`stalk-surface-above-ring`)
+chisq.test(tbl11)
+
+tbl12 <- table(mush$class, mush$`stalk-surface-below-ring`)
+chisq.test(tbl12)
+
+tbl13 <- table(mush$class, mush$`veil-type`)
+chisq.test(tbl13)
+
+tbl14 <- table(mush$class, mush$`veil-color`)
+chisq.test(tbl14)
+
+tbl15 <- table(mush$class, mush$`ring-number`)
+chisq.test(tbl15)
+
+tbl16 <- table(mush$class, mush$`ring-type`)
+chisq.test(tbl16)
+
+tbl17 <- table(mush$class, mush$population)
+chisq.test(tbl17)
+
+tbl18 <- table(mush$class, mush$habitat)
+chisq.test(tbl18)
+```
+Based on correlation between the class of the mushroom and the other attributes based on the Chi-squared test, I have chosen for further analysis:  stalk surface above ring, stalk surface below ring,  gill size and bruises.
+
+## Multivariate analysis
+We have taken into account two attributes along with class and how they contribute the the edibility of the mushrooms. The first graph is of bruises and gill.size. 
+The second graph is of stalk.surface.above.ring and stalk.surface.below.ring.
+The choice of these two attributes is based on the Chi-squared test values for correlation. 
+The purpose of these plots is to find the combined exclusivity of attributes in deciding the edibility of mushroom. The observations are noted after each graph.
+
+```{r}
+ggplot(mush, aes(bruises, `gill-size`, col = population, size = class)) +
+  geom_point()
+
+ggplot(mush, aes(`stalk-surface-above-ring`, `stalk-surface-below-ring`, col = population, size = class)) +
+  geom_point()
+```
+Summary of the section:
+Both of them cases when the combination of two attributes is taken into consideration, the class of the mushroom can be predicted.
+The combination of two can be extended to many possibilities since it is difficult to find the importance of every attribute in deciding the edibility of a given mushroom.
+
+## Logistic regression
+
+Task.
+
+I want to predict the probability of getting a poisonous mushroom
+To do this, I built a regression model in which the dependent variable is whether the mushroom is poisonous or not. 
+Predictors: stalk.surface.above.ring (fibrous=f, scaly=y, silky=k, smooth=s), gill size: (wide =b, narrow=n) and their interaction.
+
+Let's build a mosaic graph
+```{r}
+mush_train <- mutate(mush, 
+                     class = factor(class, labels = c("e", "p")),
+                     `stalk-surface-above-ring` = factor(`stalk-surface-above-ring`, labels = c("f","y","k","s")),
+                     `stalk-surface-below-ring` = factor(`stalk-surface-below-ring`, labels = c("f","y","k","s")),
+                     `gill-size` = factor(`gill-size`, labels = c("b","n")),
+                     bruises = factor(bruises, labels = c("t","f")))
+
+mosaic(~ class + `stalk-surface-above-ring`, data=mush_train)
+mosaic(~ class + `stalk-surface-below-ring`, data=mush_train)
+mosaic(~ class + `gill-size`, data=mush_train)
+mosaic(~ class + bruises, data=mush_train)
+```
+The figure shows three main hypotheses:
+a. hypothesis about the importance of the first factor - the edibility of mushrooms;
+b. hypothesis about the importance of the second factor - stalk-surface-above ring
+c. hypothesis about the importance of the third factor -gill-size
+d. hypothesis about the importance of the fourth factor - bruises;
+e. hypothesis about the interaction of these factors.
+
+1. Intercept only model
+```{r}
+mush_simple <- glm(class ~ 1, mush_train,  family = "binomial")
+coef(mush_simple)
+table(mush_train$class)
+```
+Intercept is the natural logarithm of the chances of a positive outcome
+To calculate the probability of a positive outcome, you need to calculate the indicator of the degree of "interception"
+of the output: "-0.07191675" is the probability of taking Mushroom'edible, which is significantly less than the probability that you will take Mushroom'poisonous.
+
+2. A model with a single nominative predictor
+```{r}
+mush_fit1 <- glm(class ~ `stalk-surface-above-ring`, mush_train, family = "binomial")
+coef(mush_fit1)
+summary(mush_fit1)
+table(mush_train$class, mush_train$`stalk-surface-above-ring`)
+```
+Intercept - the natural logarithm of the chances of Mushroom edible for fibrous=f.
+The stalk.surface.above.ringy, stalk.surface.above.ring and stalk.surface.above.rings are the logarithms of the ratio of the chances of Mushroom'edible for scaly=y,silky=k,smooth=s
+
+3. A model with two categorical predictors
+```{r}
+mush_fit2 <- glm(class ~ `stalk-surface-above-ring` * `gill-size`, mush_train, family = "binomial")
+coef(mush_fit2)
+summary(mush_fit2)
+table(mush_train$class, mush_train$`stalk-surface-above-ring`, mush_train$`gill-size`)
+```
+Intercept - the natural logarithm of the chances of Mushroom edible for fibrous=f.
+The stalk.surface.above.ringy, stalk.surface.above.ring and stalk.surface.above.rings are the logarithms of the ratio of the chances of Mushroom'edible for scaly=y,silky=k,smooth=s
+The stalk.surface.above.ringy:gill.sizen, stalk.surface.above.ringk:gill.sizen,  
+and stalk.surface.above.rings:gill.sizen are the logarithms of the ratio of the chances of Mushroom'edible for scaly=y,silky=k,smooth=s wiht gill-size of broad.
+
+4. model comparison
+```{r}
+anova(mush_fit1, mush_fit2, test="Chisq")
+```
+The quality indicator of the model when adding the interaction parameter with the gill.size, the quality indicator of the second model became lower than the first, and therefore the second model works better than the first.
+
+5. predicting new data
+```{r}
+mush_fit3 <- glm(class ~ bruises, mush_train, family = "binomial")
+coef(mush_fit2)
+summary(mush_fit3)
+new_mush <- data.frame(class = "e", bruises = "t")
+predict(mush_fit3, newdata = new_mush)
+```
+The model is correctly predicts all test cases
+
+6. Check a model with different variables
+```{r}
+mush_fit4 <- glm(class ~ `stalk-surface-above-ring` + `gill-size` + bruises, mush_train, family = "binomial")
+summary(mush_fit4)
+
+anova(mush_fit4, test="Chisq")
+```
+All three variables (stalk.surface.above.ring + gill.size + bruises) allow us to significantly predict Mushroom'edible
+
+Total resume:
+The mushroom dataset is analysed in three ways.
+The first this is histograms to explore the contribution of a single attribute in deciding the edibility of the mushroom. 
+The second is calculation oriented based on contribution of single attribute towards the class of mushroom. The dataset has only categorical variables for all attributes. It has used the Chi-squared Test to determine the correlation between a given attribute and the class of mushroom. 
+The correlation test helped in establishing relationship between each attribute and the class (edibility) of the mushroom. The higher X-squared implies higher correlation.
+The third it was drawing plots that would investigate the exclusiveness of two attributes taken together on classify them according to that class of the mushroom.
+For predicting it was use Logistic regression. We predicted the probability of getting a poisonous mushroom
+To do this, it was built a regression model in which the dependent variable is whether the mushroom is poisonous or not.
